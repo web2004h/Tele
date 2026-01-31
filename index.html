@@ -12,20 +12,17 @@
     background: #f0f2f5;
     color: #333;
   }
-
   header {
     background: #4a90e2;
     color: white;
     padding: 20px;
     text-align: center;
   }
-
   main {
     max-width: 800px;
     margin: 20px auto;
     padding: 0 15px;
   }
-
   .task-card {
     background: white;
     border-radius: 10px;
@@ -34,23 +31,19 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     transition: transform 0.2s;
   }
-
   .task-card:hover {
     transform: translateY(-3px);
   }
-
   .task-card h3 {
     margin: 0 0 10px 0;
     color: #4a90e2;
   }
-
   .blocked {
     text-align: center;
     padding: 50px;
     font-size: 20px;
     color: red;
   }
-
   footer {
     text-align: center;
     padding: 20px;
@@ -77,43 +70,56 @@
 </footer>
 
 <script>
-// كل مرة يفتح المستخدم البوت يتم التحقق من ID
-function initWebApp() {
-  if (!window.Telegram || !Telegram.WebApp) {
-    console.error("هذه الصفحة يجب أن تفتح داخل Telegram Web App");
-    return;
-  }
-
-  const user = Telegram.WebApp.initDataUnsafe.user;
-  fetch('data.json')
-    .then(response => response.json())
-    .then(data => {
-      const allowedIds = data.allowed_ids;
-      const tasksContainer = document.getElementById('tasksContainer');
-      const blockedDiv = document.getElementById('blocked');
-
-      if (allowedIds.includes(user.id)) {
-        blockedDiv.style.display = 'none';
-        tasksContainer.innerHTML = ''; // تفريغ أي محتوى سابق
-        data.tasks.forEach(task => {
-          const card = document.createElement('div');
-          card.className = 'task-card';
-          card.innerHTML = `<h3>${task.title}</h3><p>${task.description}</p>`;
-          tasksContainer.appendChild(card);
-        });
-      } else {
-        tasksContainer.innerHTML = '';
-        blockedDiv.style.display = 'block';
-      }
-    })
-    .catch(err => {
-      console.error("خطأ في جلب data.json:", err);
+// دالة تحقق وتعرض المهام
+async function loadTasks() {
+  try {
+    // التحقق من فتح الصفحة داخل Telegram Web App
+    if (!window.Telegram || !Telegram.WebApp) {
+      document.getElementById('blocked').textContent = "⚠️ يجب فتح هذه الصفحة داخل Telegram Web App";
       document.getElementById('blocked').style.display = 'block';
-    });
+      return;
+    }
+
+    const user = Telegram.WebApp.initDataUnsafe.user;
+    if (!user || !user.id) {
+      document.getElementById('blocked').textContent = "⚠️ لم يتم التعرف على المستخدم";
+      document.getElementById('blocked').style.display = 'block';
+      return;
+    }
+
+    // جلب بيانات JSON
+    const response = await fetch('data.json');
+    if (!response.ok) throw new Error('تعذر تحميل data.json');
+
+    const data = await response.json();
+    const allowedIds = data.allowed_ids;
+    const tasksContainer = document.getElementById('tasksContainer');
+
+    // تحقق من صلاحية الدخول
+    if (allowedIds.includes(user.id)) {
+      document.getElementById('blocked').style.display = 'none';
+      tasksContainer.innerHTML = '';
+      data.tasks.forEach(task => {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.innerHTML = `<h3>${task.title}</h3><p>${task.description}</p>`;
+        tasksContainer.appendChild(card);
+      });
+    } else {
+      tasksContainer.innerHTML = '';
+      document.getElementById('blocked').style.display = 'block';
+    }
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('tasksContainer').innerHTML = '';
+    document.getElementById('blocked').textContent = "❌ حدث خطأ في تحميل المهام";
+    document.getElementById('blocked').style.display = 'block';
+  }
 }
 
-// نفذ التحقق عند تحميل الصفحة
-window.addEventListener('load', initWebApp);
+// نفذ التحقق عند كل تحميل للصفحة
+window.addEventListener('load', loadTasks);
 </script>
 
 </body>
