@@ -23,24 +23,17 @@
 </div>
 
 <script>
-// الحصول على معلومات المستخدم من Telegram Web App
+// يحصل على معلومات المستخدم من Telegram Web App
 let user = Telegram.WebApp.initDataUnsafe.user; // يحتوي على id واسم المستخدم
 
-// جلب قائمة الأيدي المسموح بها من JSON
-fetch('allowed_ids.json')
-  .then(response => response.json())
-  .then(data => {
-    const allowedIds = data.allowed_ids;
-    if (allowedIds.includes(user.id)) {
-      document.getElementById('content').classList.remove('hidden');
-    } else {
-      document.getElementById('blocked').classList.remove('hidden');
-    }
-  })
-  .catch(err => {
-    console.error('خطأ في قراءة JSON:', err);
-    document.getElementById('blocked').classList.remove('hidden');
-  });
+// قائمة الأيدي المسموح بها مباشرة داخل HTML
+const allowedIds = [123456789, 987654321, 555555555];
+
+if (allowedIds.includes(user.id)) {
+  document.getElementById('content').classList.remove('hidden');
+} else {
+  document.getElementById('blocked').classList.remove('hidden');
+}
 </script>
 
 </body>
