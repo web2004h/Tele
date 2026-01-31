@@ -3,123 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مهام البوت</title>
+<title>Web App البوت</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background: #f0f2f5;
-    color: #333;
-  }
-  header {
-    background: #4a90e2;
-    color: white;
-    padding: 20px;
-    text-align: center;
-  }
-  main {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 0 15px;
-  }
-  .task-card {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-  }
-  .task-card:hover {
-    transform: translateY(-3px);
-  }
-  .task-card h3 {
-    margin: 0 0 10px 0;
-    color: #4a90e2;
-  }
-  .blocked {
-    text-align: center;
-    padding: 50px;
-    font-size: 20px;
-    color: red;
-  }
-  footer {
-    text-align: center;
-    padding: 20px;
-    font-size: 14px;
-    color: #888;
-  }
+  body { font-family: Arial, sans-serif; padding: 20px; background: #f0f2f5; color: #333; }
+  h1 { text-align: center; color: #4a90e2; }
+  .task-card { background: #fff; padding: 15px 20px; margin: 10px 0; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+  .task-card h3 { margin: 0 0 10px; color: #4a90e2; }
+  .hidden { display: none; }
+  .message { text-align: center; font-size: 18px; margin-top: 20px; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>مهامك في البوت</h1>
-</header>
+<h1>مرحبا بك في Web App البوت</h1>
 
-<main>
-  <div id="tasksContainer"></div>
-  <div id="blocked" class="blocked" style="display:none;">
-    ❌ ليس لديك صلاحية الدخول.
-  </div>
-</main>
-
-<footer>
-  © جميع الحقوق محفوظة
-</footer>
+<div id="tasksContainer" class="hidden"></div>
+<div id="blocked" class="hidden">
+  <p class="message">❌ ليس لديك صلاحية الدخول. الرجاء الاتصال بالمسؤول.</p>
+</div>
 
 <script>
-// دالة تحقق وتعرض المهام
-async function loadTasks() {
-  try {
-    // التحقق من فتح الصفحة داخل Telegram Web App
-    if (!window.Telegram || !Telegram.WebApp) {
-      document.getElementById('blocked').textContent = "⚠️ يجب فتح هذه الصفحة داخل Telegram Web App";
-      document.getElementById('blocked').style.display = 'block';
-      return;
-    }
+// يحصل على معلومات المستخدم من Telegram Web App
+let user = Telegram.WebApp.initDataUnsafe.user;
 
-    const user = Telegram.WebApp.initDataUnsafe.user;
-    if (!user || !user.id) {
-      document.getElementById('blocked').textContent = "⚠️ لم يتم التعرف على المستخدم";
-      document.getElementById('blocked').style.display = 'block';
-      return;
-    }
-
-    // جلب بيانات JSON
-    const response = await fetch('data.json');
-    if (!response.ok) throw new Error('تعذر تحميل data.json');
-
-    const data = await response.json();
+// جلب بيانات JSON (allowed_ids + tasks)
+fetch('data.json')
+  .then(res => res.json())
+  .then(data => {
     const allowedIds = data.allowed_ids;
-    const tasksContainer = document.getElementById('tasksContainer');
+    const tasks = data.tasks || [];
+    const container = document.getElementById('tasksContainer');
 
-    // تحقق من صلاحية الدخول
     if (allowedIds.includes(user.id)) {
-      document.getElementById('blocked').style.display = 'none';
-      tasksContainer.innerHTML = '';
-      data.tasks.forEach(task => {
-        const card = document.createElement('div');
-        card.className = 'task-card';
-        card.innerHTML = `<h3>${task.title}</h3><p>${task.description}</p>`;
-        tasksContainer.appendChild(card);
+      document.getElementById('tasksContainer').classList.remove('hidden');
+      tasks.forEach(task => {
+        const div = document.createElement('div');
+        div.className = 'task-card';
+        div.innerHTML = `<h3>${task.title}</h3><p>${task.description}</p>`;
+        container.appendChild(div);
       });
     } else {
-      tasksContainer.innerHTML = '';
-      document.getElementById('blocked').style.display = 'block';
+      document.getElementById('blocked').classList.remove('hidden');
     }
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById('tasksContainer').innerHTML = '';
-    document.getElementById('blocked').textContent = "❌ حدث خطأ في تحميل المهام";
-    document.getElementById('blocked').style.display = 'block';
-  }
-}
-
-// نفذ التحقق عند كل تحميل للصفحة
-window.addEventListener('load', loadTasks);
+  })
+  .catch(err => {
+    console.error('خطأ في قراءة data.json:', err);
+    document.getElementById('blocked').classList.remove('hidden');
+  });
 </script>
 
 </body>
