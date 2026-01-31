@@ -19,17 +19,20 @@
 
 <div id="tasksContainer" class="hidden"></div>
 <div id="blocked" class="hidden">
-  <p class="message">❌ ليس لديك صلاحية الدخول. الرجاء الاتصال بالمسؤول.</p>
+  <p class="message">❌ ليس لديك صلاحية الدخول.</p>
 </div>
 
 <script>
-// يحصل على معلومات المستخدم من Telegram Web App
-let user = Telegram.WebApp.initDataUnsafe.user;
+(async function(){
+  try {
+    // تجربة: استخدم ID افتراضي إذا لم تكن داخل Telegram Web App
+    let user = (Telegram?.WebApp?.initDataUnsafe?.user) || { id: 123456789 };
 
-// جلب بيانات JSON (allowed_ids + tasks)
-fetch('data.json')
-  .then(res => res.json())
-  .then(data => {
+    // جلب بيانات JSON
+    const response = await fetch('data.json');
+    if (!response.ok) throw new Error("تعذر تحميل data.json");
+
+    const data = await response.json();
     const allowedIds = data.allowed_ids;
     const tasks = data.tasks || [];
     const container = document.getElementById('tasksContainer');
@@ -37,19 +40,20 @@ fetch('data.json')
     if (allowedIds.includes(user.id)) {
       document.getElementById('tasksContainer').classList.remove('hidden');
       tasks.forEach(task => {
-        const div = document.createElement('div');
-        div.className = 'task-card';
-        div.innerHTML = `<h3>${task.title}</h3><p>${task.description}</p>`;
-        container.appendChild(div);
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.innerHTML = `<h3>${task.title}</h3><p>${task.description}</p>`;
+        container.appendChild(card);
       });
     } else {
       document.getElementById('blocked').classList.remove('hidden');
     }
-  })
-  .catch(err => {
-    console.error('خطأ في قراءة data.json:', err);
+
+  } catch(err) {
+    console.error(err);
     document.getElementById('blocked').classList.remove('hidden');
-  });
+  }
+})();
 </script>
 
 </body>
