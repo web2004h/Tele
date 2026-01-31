@@ -2,9 +2,8 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>Telegram Access Control</title>
+  <title>Telegram WebApp Access</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <style>
     body {
       font-family: sans-serif;
@@ -23,52 +22,50 @@
     .deny { color: #ef4444; }
   </style>
 </head>
-
 <body>
 
 <h2>🔐 Telegram Mini App</h2>
-
 <div id="result" class="box">جاري التحقق...</div>
 
 <script>
+  // تحقق أولًا من وجود WebApp
+  if (!window.Telegram || !window.Telegram.WebApp) {
+    document.getElementById("result").innerHTML = "<span class='deny'>❌ يجب فتح التطبيق داخل تيليجرام</span>";
+    throw new Error("Not opened inside Telegram WebApp");
+  }
+
   const tg = window.Telegram.WebApp;
   tg.ready();
 
-  /* ===============================
-     👇 مكان "ملف JSON" الداخلي
-     =============================== */
-  const ALLOWED_USERS = [
-    123456789,
-    987654321,
-    555444333
-  ];
-  /* =============================== */
-
-  const result = document.getElementById("result");
+  // ID المستخدم وبياناته
   const user = tg.initDataUnsafe?.user;
+  const result = document.getElementById("result");
 
   if (!user) {
-    result.innerHTML = "<span class='deny'>❌ الصفحة لم تُفتح من داخل تيليجرام</span>";
+    result.innerHTML = "<span class='deny'>❌ لا يمكن الحصول على بيانات المستخدم</span>";
     throw new Error("No Telegram User");
   }
 
-  const userId = user.id;
+  // 👇 هنا قائمة المستخدمين المسموح لهم
+  const ALLOWED_USERS = [
+    123456789, // ضع IDs المستخدمين هنا
+    987654321
+  ];
 
-  if (ALLOWED_USERS.includes(userId)) {
+  // التحقق
+  if (ALLOWED_USERS.includes(user.id)) {
     result.innerHTML = `
       <span class="allow">✅ تم السماح بالدخول</span><br><br>
       مرحبًا <b>${user.first_name}</b><br>
-      ID: <code>${userId}</code>
+      ID: <code>${user.id}</code>
     `;
   } else {
     result.innerHTML = `
-      <span class="deny">⛔ غير مصرح لك بالدخول</span><br><br>
-      ID الخاص بك:<br>
-      <code>${userId}</code>
+      <span class="deny">⛔ غير مصرح لك بالدخول</span><br>
+      ID الخاص بك: <code>${user.id}</code>
     `;
-
-    // قفل التطبيق
-    tg.close();
+    // إغلاق WebApp بعد 3 ثواني
+    setTimeout(() => tg.close(), 3000);
   }
 </script>
 
