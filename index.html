@@ -3,37 +3,115 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web App البوت</title>
+<title>مهام البوت</title>
 <style>
-  body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-  .hidden { display: none; }
-  .message { margin-top: 20px; font-size: 18px; }
+  body { 
+    font-family: Arial, sans-serif; 
+    background: #f0f2f5; 
+    color: #333; 
+    margin: 0; 
+    padding: 0; 
+  }
+  header {
+    background: #4a90e2; 
+    color: white; 
+    padding: 20px; 
+    text-align: center;
+  }
+  main {
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 0 15px;
+  }
+  .task-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+  }
+  .task-card:hover {
+    transform: translateY(-3px);
+  }
+  .task-card h3 {
+    margin: 0 0 10px 0;
+    color: #4a90e2;
+  }
+  .blocked, .loading {
+    text-align: center;
+    padding: 50px;
+    font-size: 18px;
+    color: red;
+  }
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+    color: #888;
+  }
 </style>
 </head>
 <body>
 
-<h1>مرحبا بك في Web App البوت</h1>
+<header>
+  <h1>مرحبا بك في Web App البوت</h1>
+</header>
 
-<div id="content" class="hidden">
-  <p class="message">✅ لديك صلاحية الدخول! استمتع باستخدام التطبيق.</p>
-</div>
+<main>
+  <div id="loading" class="loading">⏳ جاري التحقق من صلاحياتك...</div>
+  <div id="tasksContainer" class="hidden"></div>
+  <div id="blocked" class="blocked hidden">❌ ليس لديك صلاحية الدخول. الرجاء الاتصال بالمسؤول.</div>
+</main>
 
-<div id="blocked" class="hidden">
-  <p class="message">❌ ليس لديك صلاحية الدخول. الرجاء الاتصال بالمسؤول.</p>
-</div>
+<footer>
+  © جميع الحقوق محفوظة
+</footer>
 
 <script>
-// يحصل على معلومات المستخدم من Telegram Web App
-let user = Telegram.WebApp.initDataUnsafe.user; // يحتوي على id واسم المستخدم
+(function() {
+  // قائمة الأيدي المسموح بها
+  const allowedIds = [123456789, 987654321, 555555555, 7799197049];
 
-// قائمة الأيدي المسموح بها مباشرة داخل HTML
-const allowedIds = [123456789, 987654321, 555555555];
+  // المهام المراد عرضها
+  const tasks = [
+    { title: "مهمة 1", description: "وصف المهمة الأولى" },
+    { title: "مهمة 2", description: "وصف المهمة الثانية" },
+    { title: "مهمة 3", description: "وصف المهمة الثالثة" }
+  ];
 
-if (allowedIds.includes(user.id)) {
-  document.getElementById('content').classList.remove('hidden');
-} else {
-  document.getElementById('blocked').classList.remove('hidden');
-}
+  // التحقق من أن الصفحة مفتوحة داخل Telegram Web App
+  if (!window.Telegram || !Telegram.WebApp) {
+    document.getElementById('loading').textContent = "⚠️ يجب فتح هذه الصفحة داخل Telegram Web App";
+    return;
+  }
+
+  // الحصول على بيانات المستخدم
+  const user = Telegram.WebApp.initDataUnsafe.user;
+
+  if (!user || !user.id) {
+    document.getElementById('loading').textContent = "⚠️ لم يتم التعرف على المستخدم";
+    return;
+  }
+
+  // التحقق من الصلاحية
+  if (allowedIds.includes(user.id)) {
+    document.getElementById('loading').classList.add('hidden');
+    const container = document.getElementById('tasksContainer');
+    container.classList.remove('hidden');
+
+    tasks.forEach(task => {
+      const card = document.createElement('div');
+      card.className = 'task-card';
+      card.innerHTML = `<h3>${task.title}</h3><p>${task.description}</p>`;
+      container.appendChild(card);
+    });
+
+  } else {
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('blocked').classList.remove('hidden');
+  }
+})();
 </script>
 
 </body>
