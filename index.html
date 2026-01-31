@@ -1,73 +1,44 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>Telegram WebApp Access</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      padding: 20px;
-    }
-    .box {
-      background: #020617;
-      border: 1px solid #1e293b;
-      padding: 16px;
-      border-radius: 10px;
-      margin-top: 20px;
-    }
-    .allow { color: #22c55e; }
-    .deny { color: #ef4444; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web App البوت</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+  .hidden { display: none; }
+  .message { margin-top: 20px; font-size: 18px; }
+</style>
 </head>
 <body>
 
-<h2>🔐 Telegram Mini App</h2>
-<div id="result" class="box">جاري التحقق...</div>
+<h1>مرحبا بك في Web App البوت</h1>
+<div id="content" class="hidden">
+  <p class="message">✅ لديك صلاحية الدخول! استمتع باستخدام التطبيق.</p>
+</div>
+<div id="blocked" class="hidden">
+  <p class="message">❌ ليس لديك صلاحية الدخول. الرجاء الاتصال بالمسؤول.</p>
+</div>
 
 <script>
-  // تحقق أولًا من وجود WebApp
-  if (!window.Telegram || !window.Telegram.WebApp) {
-    document.getElementById("result").innerHTML = "<span class='deny'>❌ يجب فتح التطبيق داخل تيليجرام</span>";
-    throw new Error("Not opened inside Telegram WebApp");
-  }
+// يحصل على معلومات المستخدم من تيليجرام Web App
+let user = Telegram.WebApp.initDataUnsafe.user; // يحصل على ID واسم المستخدم
 
-  const tg = window.Telegram.WebApp;
-  tg.ready();
-
-  // ID المستخدم وبياناته
-  const user = tg.initDataUnsafe?.user;
-  const result = document.getElementById("result");
-
-  if (!user) {
-    result.innerHTML = "<span class='deny'>❌ لا يمكن الحصول على بيانات المستخدم</span>";
-    throw new Error("No Telegram User");
-  }
-
-  // 👇 هنا قائمة المستخدمين المسموح لهم
-  const ALLOWED_USERS = [
-    123456789, // ضع IDs المستخدمين هنا
-    987654321,
-    7799197049
-  ];
-
-  // التحقق
-  if (ALLOWED_USERS.includes(user.id)) {
-    result.innerHTML = `
-      <span class="allow">✅ تم السماح بالدخول</span><br><br>
-      مرحبًا <b>${user.first_name}</b><br>
-      ID: <code>${user.id}</code>
-    `;
-  } else {
-    result.innerHTML = `
-      <span class="deny">⛔ غير مصرح لك بالدخول</span><br>
-      ID الخاص بك: <code>${user.id}</code>
-    `;
-    // إغلاق WebApp بعد 3 ثواني
-    setTimeout(() => tg.close(), 3000);
-  }
+// جلب قائمة الأيدي المسموح بها من JSON
+fetch('allowed_ids.json')
+  .then(response => response.json())
+  .then(data => {
+    const allowedIds = data.allowed_ids;
+    if (allowedIds.includes(user.id)) {
+      document.getElementById('content').classList.remove('hidden');
+    } else {
+      document.getElementById('blocked').classList.remove('hidden');
+    }
+  })
+  .catch(err => {
+    console.error('خطأ في قراءة JSON:', err);
+    document.getElementById('blocked').classList.remove('hidden');
+  });
 </script>
 
 </body>
