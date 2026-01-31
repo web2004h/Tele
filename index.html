@@ -5,55 +5,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Web App البوت</title>
 <style>
-  body { font-family: Arial, sans-serif; padding: 20px; background: #f0f2f5; color: #333; }
-  h1 { text-align: center; color: #4a90e2; }
-  .task-card { background: #fff; padding: 15px 20px; margin: 10px 0; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-  .task-card h3 { margin: 0 0 10px; color: #4a90e2; }
+  body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
   .hidden { display: none; }
-  .message { text-align: center; font-size: 18px; margin-top: 20px; }
+  .message { margin-top: 20px; font-size: 18px; }
 </style>
 </head>
 <body>
 
 <h1>مرحبا بك في Web App البوت</h1>
 
-<div id="tasksContainer" class="hidden"></div>
+<div id="content" class="hidden">
+  <p class="message">✅ لديك صلاحية الدخول! استمتع باستخدام التطبيق.</p>
+</div>
+
 <div id="blocked" class="hidden">
-  <p class="message">❌ ليس لديك صلاحية الدخول.</p>
+  <p class="message">❌ ليس لديك صلاحية الدخول. الرجاء الاتصال بالمسؤول.</p>
 </div>
 
 <script>
-(async function(){
-  try {
-    // تجربة: استخدم ID افتراضي إذا لم تكن داخل Telegram Web App
-    let user = (Telegram?.WebApp?.initDataUnsafe?.user) || { id: 123456789 };
+// الحصول على معلومات المستخدم من Telegram Web App
+let user = Telegram.WebApp.initDataUnsafe.user; // يحتوي على id واسم المستخدم
 
-    // جلب بيانات JSON
-    const response = await fetch('data.json');
-    if (!response.ok) throw new Error("تعذر تحميل data.json");
-
-    const data = await response.json();
+// جلب قائمة الأيدي المسموح بها من JSON
+fetch('allowed_ids.json')
+  .then(response => response.json())
+  .then(data => {
     const allowedIds = data.allowed_ids;
-    const tasks = data.tasks || [];
-    const container = document.getElementById('tasksContainer');
-
     if (allowedIds.includes(user.id)) {
-      document.getElementById('tasksContainer').classList.remove('hidden');
-      tasks.forEach(task => {
-        const card = document.createElement('div');
-        card.className = 'task-card';
-        card.innerHTML = `<h3>${task.title}</h3><p>${task.description}</p>`;
-        container.appendChild(card);
-      });
+      document.getElementById('content').classList.remove('hidden');
     } else {
       document.getElementById('blocked').classList.remove('hidden');
     }
-
-  } catch(err) {
-    console.error(err);
+  })
+  .catch(err => {
+    console.error('خطأ في قراءة JSON:', err);
     document.getElementById('blocked').classList.remove('hidden');
-  }
-})();
+  });
 </script>
 
 </body>
