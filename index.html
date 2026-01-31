@@ -22,7 +22,7 @@
 // بيانات المستخدم من تيليجرام
 let user = Telegram.WebApp.initDataUnsafe.user;
 
-// جلب JSON
+// قراءة JSON مباشرة
 fetch('data.json')
   .then(res => res.json())
   .then(data => {
@@ -47,5 +47,6 @@ fetch('data.json')
     document.getElementById('blocked').classList.remove('hidden');
   });
 </script>
+
 </body>
 </html>
