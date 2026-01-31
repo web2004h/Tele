@@ -3,43 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web App البوت</title>
+<title>مهام البوت</title>
 <style>
-  body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+  body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+  .task { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
   .hidden { display: none; }
-  .message { margin-top: 20px; font-size: 18px; }
 </style>
 </head>
 <body>
 
-<h1>مرحبا بك في Web App البوت</h1>
-<div id="content" class="hidden">
-  <p class="message">✅ لديك صلاحية الدخول! استمتع باستخدام التطبيق.</p>
-</div>
+<h1>مهامك</h1>
+<div id="tasks" class="hidden"></div>
 <div id="blocked" class="hidden">
-  <p class="message">❌ ليس لديك صلاحية الدخول. الرجاء الاتصال بالمسؤول.</p>
+  <p>❌ ليس لديك صلاحية الدخول.</p>
 </div>
 
 <script>
-// يحصل على معلومات المستخدم من تيليجرام Web App
-let user = Telegram.WebApp.initDataUnsafe.user; // يحصل على ID واسم المستخدم
+// بيانات المستخدم من تيليجرام
+let user = Telegram.WebApp.initDataUnsafe.user;
 
-// جلب قائمة الأيدي المسموح بها من JSON
-fetch('allowed_ids.json')
-  .then(response => response.json())
+// جلب JSON
+fetch('data.json')
+  .then(res => res.json())
   .then(data => {
     const allowedIds = data.allowed_ids;
+    const tasksDiv = document.getElementById('tasks');
+
     if (allowedIds.includes(user.id)) {
-      document.getElementById('content').classList.remove('hidden');
+      tasksDiv.classList.remove('hidden');
+
+      data.tasks.forEach(task => {
+        const div = document.createElement('div');
+        div.className = 'task';
+        div.innerHTML = `<h3>${task.title}</h3><p>${task.description}</p>`;
+        tasksDiv.appendChild(div);
+      });
     } else {
       document.getElementById('blocked').classList.remove('hidden');
     }
   })
   .catch(err => {
-    console.error('خطأ في قراءة JSON:', err);
+    console.error(err);
     document.getElementById('blocked').classList.remove('hidden');
   });
 </script>
-
 </body>
 </html>
