@@ -1,13 +1,7 @@
-here{
+{
   "allowed_ids": [123456789, 987654321],
   "tasks": [
-    {
-      "title": "مهمة 1",
-      "description": "وصف المهمة 1"
-    },
-    {
-      "title": "مهمة 2",
-      "description": "وصف المهمة 2"
-    }
+    { "title": "مهمة 1", "description": "وصف المهمة الأولى" },
+    { "title": "مهمة 2", "description": "وصف المهمة الثانية" }
   ]
 }
